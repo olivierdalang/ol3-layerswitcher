@@ -214,9 +214,10 @@ ol.control.LayerSwitcher.prototype.renderLayer_ = function(lyr, idx) {
  */
 ol.control.LayerSwitcher.prototype.renderLayers_ = function(lyr, elm) {
     var lyrs = lyr.getLayers().getArray().slice().reverse();
+    var rsl = this.getMap().getView().getResolution();
     for (var i = 0, l; i < lyrs.length; i++) {
         l = lyrs[i];
-        if (l.get('title')) {
+        if (l.get('title') && rsl<l.getMaxResolution() && rsl>l.getMinResolution()) {
             elm.appendChild(this.renderLayer_(l, i));
         }
     }
