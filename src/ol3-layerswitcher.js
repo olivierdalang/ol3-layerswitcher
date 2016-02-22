@@ -61,6 +61,35 @@ ol.control.LayerSwitcher = function(opt_options) {
 
 ol.inherits(ol.control.LayerSwitcher, ol.control.Control);
 
+
+ol.control.LayerSwitcher.prototype.storeLayerVisibilities_ = function() {
+    // TODO : storing/restoring of layer visibilies should be optional
+    // TODO : expiration should be parametrable
+    // TODO : this will conflict if different maps have the same layer titles. is there a map.getTitle() or something to prepend the cookie with ?
+    // TODO : this will conflict if several layers have the same title.
+    var visibilities = {};
+    ol.control.LayerSwitcher.forEachRecursive(this.getMap(), function(l, idx, a) {
+        var title = l.get('title');
+        if( title ){
+            visibilities[title] = l.getVisible();
+        }
+    });
+    Cookies.set('ol3-layerswitcher_visibilities',visibilities, { expires : 1 });
+}
+
+ol.control.LayerSwitcher.prototype.restoreLayersVisibilities_ = function() {
+
+    var visibilities = Cookies.getJSON('ol3-layerswitcher_visibilities');
+    if(visibilities!==undefined){
+        ol.control.LayerSwitcher.forEachRecursive(this.getMap(), function(l, idx, a) {
+            var title = l.get('title');
+            if( visibilities[title]!==undefined ){
+                l.setVisible( visibilities[title] );
+            }
+        });
+    }
+}
+
 /**
  * Show the layer panel.
  */
@@ -85,6 +114,7 @@ ol.control.LayerSwitcher.prototype.hidePanel = function() {
  */
 ol.control.LayerSwitcher.prototype.renderPanel = function() {
 
+    this.restoreLayersVisibilities_();
     this.ensureTopVisibleBaseLayerShown_();
 
     while(this.panel.firstChild) {
@@ -150,6 +180,9 @@ ol.control.LayerSwitcher.prototype.setVisible_ = function(lyr, visible) {
             }
         });
     }
+    this.storeLayerVisibilities_();
+    
+    
 };
 
 /**
